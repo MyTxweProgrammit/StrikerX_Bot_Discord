@@ -14,6 +14,9 @@ async def on_ready():
 @client.event
 async def on_message(message):
     if message.author == client.user:
+            return
+    if message.content.startswith('-bye'):
+        await message.channel.send("Goodbye! I will see you later!")
         return
     if message.content.startswith("-hello"): 
         await message.channel.send("Hey, There!")
@@ -24,10 +27,6 @@ async def on_message(message):
     if message.content.startswith('-today'):
         await message.channel.send(f"Date: {date.today()}")
         return
-    if message.content.startswith('-bye'):
-        await message.channel.send("Goodbye! I will see you later!")
-        return
-
 server_on()
 
 client.run(os.getenv('TOKEN'))
