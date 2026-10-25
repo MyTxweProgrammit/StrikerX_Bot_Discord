@@ -24,6 +24,9 @@ async def on_message(message):
     if message.content.startswith('-today'):
         await message.channel.send(f"Date: {date.today()}")
         return
+    if message.content.startswith('-bye'):
+        await message.channel.send("Goodbye! I will see you later!")
+        return
 
 server_on()
 
