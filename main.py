@@ -27,6 +27,14 @@ async def on_message(message):
     if message.content.startswith('-today'):
         await message.channel.send(f"Date: {date.today()}")
         return
+    if message.content.startswith('-clear'):
+        if message.author.guild_permissions.manage_messages:
+              delete = await message.channel.purge(limit=100)
+              await message.channel.send(f"Cleared {len(delete)} messages.")
+        else:
+            await message.channel.send("You don't have permission to do this.")
+        return
+    
 server_on()
 
 client.run(os.getenv('TOKEN'))
