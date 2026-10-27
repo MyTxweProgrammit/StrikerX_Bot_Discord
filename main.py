@@ -51,22 +51,42 @@ async def on_message(message):
         else:
             await message.channel.send("You don't have permission to do this.")
         return
-    # if message.content.startswith('-role') and message.author.guild_permissions.manage_messages:
-    #     target_member = message.mentions[0] if message.mentions else message.author
-        
-    #     role_id = 1564492134952738866
-    #     role = message.guild.get_role(role_id)
-        
-    #     if role is None:
-    #         await message.channel.send("ไม่พบ Role นี้ในเซิร์ฟเวอร์")
-    #         return
+    if message.content.startswith('-role') and message.author.guild_permissions.manage_messages:
+        parts = message.content.split()
+        if len(parts) < 3:
+            await message.channel.send("Invalid Command! Use this instead `-role @User <Role_ID>`.")
+            return
+        if message.mentions:
+            target_member = message.mentions[0]
+        else:
+            user_id_str = ''.join(filter(str.isdigit, parts[1]))
+            if user_id_str.isdigit():
+                target_member = message.guild.get_member(int(user_id_str))
+            else:
+                target_member = None
+        if target_member is None:
+            # await message.channel.send("Can't found a memberin this server!")
+            target_member = await message.guild.fetch_member(int(user_id_str))
 
-    #     try:
-    #         await target_member.add_roles(role)
-    #         await message.channel.send(f"เพิ่มยศ {role.name} ให้กับ {target_member.mention} เรียบร้อยแล้ว!")
-    #     except discord.Forbidden:
-    #         await message.channel.send("บอทไม่มีสิทธิ์สูงพอที่จะจัดการยศนี้ (ตำแหน่ง Role ของบอทต้องอยู่สูงกว่า Role ที่จะแจก)")
-    #     return
+        try:
+            role_id = int(parts[2])
+        except ValueError:
+            await message.channel.send("Role ID must be integer!")
+            return
+        role = message.guild.get_role(role_id)
+    
+        if role is None:
+            await message.channel.send("Can't find a role on this server.")
+            return
+        try:
+            roles_to_remove = [r for r in target_member.roles if r != message.guild.default_role]
+            if roles_to_remove:
+                await target_member.remove_roles(*roles_to_remove)
+            await target_member.add_roles(role)
+            await message.channel.send(f"Already increased role {role.name} to {target_member.mention}!")
+        except discord.Forbidden:
+            await message.channel.send("Bot don't have a high enough role to change it.")
+        return
     if message.content.startswith('-pdf-to-image'):
         parts = message.content.split()  
         if message.attachments and message.attachments[0].filename.endswith('.pdf') and len(parts) > 1 and parts[1].isdigit():
