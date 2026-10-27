@@ -14,6 +14,21 @@ async def on_ready():
     print("We have logged in as {0.user}".format(client))
 
 @client.event
+async def on_member_join(member):
+    role_id = 1564494948919803954
+    role = member.guild.get_role(role_id)
+            
+    if role is None:
+        print("Can't found a role on this server.")
+        return
+    try:
+        await member.add_roles(role)
+        print("Already set the first role for user in server!")
+    except discord.Forbidden:
+        print("Bot don't have a high role to change it.")
+    return
+
+@client.event
 async def on_message(message):
     if message.author == client.user:
             return
@@ -36,6 +51,22 @@ async def on_message(message):
         else:
             await message.channel.send("You don't have permission to do this.")
         return
+    # if message.content.startswith('-role') and message.author.guild_permissions.manage_messages:
+    #     target_member = message.mentions[0] if message.mentions else message.author
+        
+    #     role_id = 1564492134952738866
+    #     role = message.guild.get_role(role_id)
+        
+    #     if role is None:
+    #         await message.channel.send("ไม่พบ Role นี้ในเซิร์ฟเวอร์")
+    #         return
+
+    #     try:
+    #         await target_member.add_roles(role)
+    #         await message.channel.send(f"เพิ่มยศ {role.name} ให้กับ {target_member.mention} เรียบร้อยแล้ว!")
+    #     except discord.Forbidden:
+    #         await message.channel.send("บอทไม่มีสิทธิ์สูงพอที่จะจัดการยศนี้ (ตำแหน่ง Role ของบอทต้องอยู่สูงกว่า Role ที่จะแจก)")
+    #     return
     if message.content.startswith('-pdf-to-image'):
         parts = message.content.split()  
         if message.attachments and message.attachments[0].filename.endswith('.pdf') and len(parts) > 1 and parts[1].isdigit():
@@ -61,6 +92,8 @@ async def on_message(message):
         else:
             await message.channel.send("Please provided correct code: -pdf-to-image <number_page>")
         return
+
+
 server_on()
 
 client.run(os.getenv('TOKEN'))
