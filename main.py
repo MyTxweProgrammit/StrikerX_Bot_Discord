@@ -7,7 +7,12 @@ from server import server_on
 
 intents = discord.Intents.default()
 intents.message_content = True
+intents.members = True
+intents.guilds = True
+
 client = discord.Client(intents=intents)
+Privacy_Voice_Channel_ID = 1564979389345562756
+temp_channels = {}
 
 @client.event
 async def on_ready():
@@ -113,6 +118,37 @@ async def on_message(message):
             await message.channel.send("Please provided correct code: -pdf-to-image <number_page>")
         return
 
+@client.event
+async def on_voice_state_update(member, before, after):
+    guild = member.guild
+
+    if after.channel and after.channel.id == Privacy_Voice_Channel_ID:
+        category = after.channel.category
+        overwrites = {
+            guild.default_role: discord.PermissionOverwrite(view_channel=False),
+            guild.get_role(1564494306792964097): discord.PermissionOverwrite(view_channel=True, connect=True),
+            guild.get_role(1564492134952738866): discord.PermissionOverwrite(view_channel=True, connect=True),
+            member: discord.PermissionOverwrite(view_channel=True, manage_channels=True, manage_permissions=True, connect=True),
+        }
+        voice_name = f"{member.display_name}'s voice room"
+        new_voice = await guild.create_voice_channel(
+            name=voice_name, category=category, overwrites=overwrites
+        )
+        await member.move_to(new_voice)
+        text_name = f"{member.name}'s room"
+        new_text = await guild.create_text_channel(
+            name=text_name, category=category, overwrites=overwrites
+        )
+        
+        temp_channels[new_voice.id] = new_text
+
+    if before.channel and before.channel.id != Privacy_Voice_Channel_ID:
+        if len(before.channel.members) == 0:
+            if before.channel.name.startswith(f"{member.display_name}"):
+                await before.channel.delete()
+                if before.channel.id in temp_channels:
+                    await temp_channels[before.channel.id].delete()
+                    del temp_channels[before.channel.id]
 
 server_on()
 
