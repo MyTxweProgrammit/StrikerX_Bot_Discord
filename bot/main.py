@@ -3,6 +3,13 @@ import discord
 import pymupdf
 import io
 from datetime import date
+from bot.config import (
+    JOIN_ROLE_ID,
+    OVERWRITE_ROLE_ID_1,
+    OVERWRITE_ROLE_ID_2,
+    PRIVACY_VOICE_CHANNEL_ID,
+    TOKEN,
+)
 from web.keepalive import server_on
 
 intents = discord.Intents.default()
@@ -11,7 +18,6 @@ intents.members = True
 intents.guilds = True
 
 client = discord.Client(intents=intents)
-Privacy_Voice_Channel_ID = 1564979389345562756
 temp_channels = {}
 
 async def create_private_channel(member):
@@ -25,8 +31,8 @@ async def create_private_channel(member):
     if not category:
         overwrites = {
             guild.default_role: discord.PermissionOverwrite(view_channel=False),
-            guild.get_role(1564494306792964097): discord.PermissionOverwrite(view_channel=True, connect=True),
-            guild.get_role(1564492134952738866): discord.PermissionOverwrite(view_channel=True, connect=True),
+            guild.get_role(OVERWRITE_ROLE_ID_1): discord.PermissionOverwrite(view_channel=True, connect=True),
+            guild.get_role(OVERWRITE_ROLE_ID_2): discord.PermissionOverwrite(view_channel=True, connect=True),
             member: discord.PermissionOverwrite(view_channel=True, manage_channels=True, manage_permissions=True, connect=True),
         }
         category = await guild.create_category(f"🔒-{member.name}", overwrites=overwrites)
@@ -42,7 +48,7 @@ async def on_ready():
 
 @client.event
 async def on_member_join(member):
-    role_id = 1564494948919803954
+    role_id = JOIN_ROLE_ID
     role = member.guild.get_role(role_id)
 
     if not member.bot:
@@ -147,12 +153,12 @@ async def on_message(message):
 async def on_voice_state_update(member, before, after):
     guild = member.guild
 
-    if after.channel and after.channel.id == Privacy_Voice_Channel_ID:
+    if after.channel and after.channel.id == PRIVACY_VOICE_CHANNEL_ID:
         category = after.channel.category
         overwrites = {
             guild.default_role: discord.PermissionOverwrite(view_channel=False),
-            guild.get_role(1564494306792964097): discord.PermissionOverwrite(view_channel=True, connect=True),
-            guild.get_role(1564492134952738866): discord.PermissionOverwrite(view_channel=True, connect=True),
+            guild.get_role(OVERWRITE_ROLE_ID_1): discord.PermissionOverwrite(view_channel=True, connect=True),
+            guild.get_role(OVERWRITE_ROLE_ID_2): discord.PermissionOverwrite(view_channel=True, connect=True),
             member: discord.PermissionOverwrite(view_channel=True, manage_channels=True, manage_permissions=True, connect=True),
         }
         voice_name = f"{member.display_name}'s voice room"
@@ -167,7 +173,7 @@ async def on_voice_state_update(member, before, after):
         
         temp_channels[new_voice.id] = new_text
 
-    if before.channel and before.channel.id != Privacy_Voice_Channel_ID:
+    if before.channel and before.channel.id != PRIVACY_VOICE_CHANNEL_ID:
         if len(before.channel.members) == 0:
             if before.channel.name.startswith(f"{member.display_name}"):
                 await before.channel.delete()
@@ -177,4 +183,4 @@ async def on_voice_state_update(member, before, after):
 
 def main():
     server_on()
-    client.run(os.getenv('TOKEN'))
+    client.run(TOKEN)
