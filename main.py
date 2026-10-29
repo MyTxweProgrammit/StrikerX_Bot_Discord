@@ -14,15 +14,40 @@ client = discord.Client(intents=intents)
 Privacy_Voice_Channel_ID = 1564979389345562756
 temp_channels = {}
 
+async def create_private_channel(member):
+    if member.bot:
+        return
+
+    guild = member.guild
+    channel_name = f"private-{member.name.lower()}"
+    category = discord.utils.get(guild.categories, name=f"🔒-{member.name}")
+
+    if not category:
+        overwrites = {
+            guild.default_role: discord.PermissionOverwrite(view_channel=False),
+            guild.get_role(1564494306792964097): discord.PermissionOverwrite(view_channel=True, connect=True),
+            guild.get_role(1564492134952738866): discord.PermissionOverwrite(view_channel=True, connect=True),
+            member: discord.PermissionOverwrite(view_channel=True, manage_channels=True, manage_permissions=True, connect=True),
+        }
+        category = await guild.create_category(f"🔒-{member.name}", overwrites=overwrites)
+        await guild.create_text_channel(channel_name, category=category)
+
 @client.event
 async def on_ready():
     print("We have logged in as {0.user}".format(client))
+    for guild in client.guilds:
+        for member in guild.members:
+            if not member.bot:
+                await create_private_channel(member)
 
 @client.event
 async def on_member_join(member):
     role_id = 1564494948919803954
     role = member.guild.get_role(role_id)
-            
+
+    if not member.bot:
+        await create_private_channel(member)
+    
     if role is None:
         print("Can't found a role on this server.")
         return
