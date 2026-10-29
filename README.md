@@ -6,7 +6,7 @@ A Flask app listens on port 8000. `GET /` returns `Server is running!`.
 
 ## Setup
 
-The bot reads `TOKEN` from the process environment. It does not load a `.env` file.
+The bot reads `TOKEN` from the process environment. If that variable is unset, it loads `TOKEN` from a `.env` file in the project root. A variable already set in the environment is left as it is.
 
 Windows Command Prompt:
 
@@ -20,7 +20,7 @@ PowerShell:
 $env:TOKEN = "your-discord-bot-token"
 ```
 
-`.env.example` only names the variable. Copy it to `.env` for your own notes if you want. Do not commit a real token.
+Copy `.env.example` to `.env` and set `TOKEN` there. Do not commit a real token.
 
 ## Run
 
